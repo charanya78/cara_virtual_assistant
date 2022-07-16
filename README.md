@@ -34,4 +34,6 @@ Use pip install to download the necessary dependencies
 
 Use python cara_app.py to run the file
 
-**To know more about our project - Refer CaraReport.docx in the same repository
+**To know more about our project** 
+
+Refer CaraReport.docx in the same repository
