@@ -1,4 +1,5 @@
-#Import dependencies
+#Import required dependencies
+
 import pyttsx3 
 import speech_recognition as sr 
 import datetime
@@ -10,11 +11,20 @@ import random
 from random import randint
 from zope.interface import Interface, implements, implementer
 
+#Returns a reference to an engine instance which uses the passed driver. 
+#If the requested driver is already in use by another engine instance, that engine is returned.
+#Speech Application Programming Interface (SAPI) is an API developed by Microsoft to allow the use of speech recognition and speech synthesis within Windows applications. 
+
 engine = pyttsx3.init('sapi5')
+
+#Gets the current value of an engine property.
 voices = engine.getProperty('voices')
+
+#Sets the value of an engine property. The new property value affects all utterances queued after this command.
 engine.setProperty('voice', voices[0].id)
 
-#Declare class User to set up CARA using username, password, id and security code
+#Declare class User
+#Used to set up CARA device and link with physical device
 class User:
         def __init__(self,username,password,cara_id,security_code):
                 self.security_code=security_code
@@ -22,14 +32,20 @@ class User:
                 self.username=username
                 self.cara_id=cara_id
 
-#Declare CaraApp to enable voice input
+#Declare CaraApp 
+#Used to enable voice input
+#Uses the method takeCommand from the class SoundSystem
+
 class CaraApp:
     def enableVoiceInput(self):
     
         query=SoundSystem.takeCommand(self)
         return query.lower()
     
-#Declare UserInterface to initialize voice input
+#Declare UserInterface 
+#Used to initialize voice input
+#Uses the method speak from the class SoundSystem and wishes the user
+
 class UserInterface:
     def wishMe(self):
         hour = int(datetime.datetime.now().hour)
@@ -41,10 +57,15 @@ class UserInterface:
                 SoundSystem.speak(self,"Good Evening!")  
         SoundSystem.speak(self,"I am Cara. Please tell me how may I help you")  
 
-#Declare WebServer for web search related queries    
+#Declare WebServer 
+#Used for web search related queries  
+#The functions defined can navigate to wikipedia, youtube, google, stackoverflow, geeksforgeeks, facebook, twitter, send mail, open swiggy and google maps
+#For the open wikipedia function, the sound system reads whatever it can find on the wikipedia page for the recognized topic
+
 class WebServer:
 
         def search_web(self,query):
+            
             if 'wikipedia' in query:
                 SoundSystem.speak(self,'Searching Wikipedia...')
                 query = query.replace("wikipedia", "")
@@ -88,7 +109,11 @@ class WebServer:
         def orderfood(self,query):
                 webbrowser.open("swiggy.com")
                 
-#Declare SoundSystem to take commands from user and recognize
+#Declare SoundSystem 
+#Used to take commands from user and recognize voice input
+#Speech_recognition module used to recognize input, initialize the microphone and listen to the user
+#It makes use of the gklobal variable engine to speak
+
 class SoundSystem:
 
         def takeCommand(self):
@@ -114,7 +139,9 @@ class SoundSystem:
             engine.say(audio)
             engine.runAndWait()
             
-#Declare Operation to set up cara device and reset function
+#Declare Operation 
+#Used to set up cara device and reset function
+
 class Operation:
         cara_id=0
         security_code=0
@@ -130,6 +157,9 @@ class Operation:
             print("The device is resetted")
 
 #Declare PlayMedia to play music and video
+#Extend from Operation
+#Use the os module to play audio and video
+
 class PlayMedia(Operation):
         def playMusic(self,query):
             music_dir = r"C:\Users\Kannan-PC\Videos\example.mp3"
@@ -141,6 +171,8 @@ class PlayMedia(Operation):
             os.startfile(video_dir)
             
 #Create interface Home Automation
+#The functions declared - enable and disable device
+
 class Home_Automation(Interface):
     def __init__(self,device_id,state):
         self.device_id=device_id
@@ -152,7 +184,9 @@ class Home_Automation(Interface):
     def disable_device(self,device_id):
         pass
     
-#Implement from Home Automation - Device Control - to enable and disable devices
+#Extended from Home Automation
+#Used to enable and disable devices - AC and TV
+
 @implementer(Home_Automation)
 class Device_Control:
     def __init__(self,device_id,state):
@@ -167,7 +201,9 @@ class Device_Control:
         self.state="OFF"
         SoundSystem.speak(self,"Switched Off")
         
-#Implement from Home Automation - Security_System - to enable and disable security system
+#Extended from Home Automation
+#Used to enable and disable devices - Security_Sytem
+
 @implementer(Home_Automation)
 class Security_System:
     def __init__(self,device_id,state):
@@ -183,7 +219,10 @@ class Security_System:
         self.state="OFF"
         SoundSystem.speak(self,"Switched Off")
         
-#Implement from Device Control -TV - change  channel , volume
+#Extended from Device Control 
+#Used to change  channel, volume
+#Implemented the functions extended enable_device, disable_device
+
 class TV(Device_Control):
     volume=23
     def change_channel(self,channel_no):
@@ -207,7 +246,10 @@ class TV(Device_Control):
         self.state="OFF"
         SoundSystem.speak(self,"Switched Off")
 
-#Implement from Device Control -AC - change  mode , temperature
+#Extended from Device Control 
+#Used to change temperature, mode
+#Implemented the functions extended enable_device, disable_device
+
 class AC(Device_Control):
     def changetemp(self,temp):
         self.temp=temp
@@ -224,8 +266,11 @@ class AC(Device_Control):
     def disable_device(self,device_id):
         self.state="OFF"
         SoundSystem.speak(self,"Switched off")
+        
+#Extended from Security_System 
+#Used to check water level
+#Declared the functions monitor,makecall,spriklewater
 
-#Implement from Security_System - Fire_Alarm : to monitor, check water level
 class Fire_Alarm(Security_System):
     waterlevel_ts=1800
     def checkwaterlevel(self,waterlevel):
@@ -237,31 +282,44 @@ class Fire_Alarm(Security_System):
         pass
     def spriklewater(self):
         pass
-    
-#Implement from Fire_Alarm - Emergency - sprinke water
+
+#Extended from Fire_Alarm
+#Used to makeCall and sprinkle water
+ 
 class Emergency(Fire_Alarm):
     def makecall(self,station_no):
         SoundSystem.speak(self,"Make a call to the station.Calling two two two four five one nine seven")
 
     def spriklewater(self):
         SoundSystem.speak(self,"Sprinkling water")
-        
-#Implement from Fire_Alarm -Conventional - monitor
+
+#Extended from Fire_Alarm
+#Used to monitor and make call and sprinkle wtaer when temperature becomes greater than threshold
+
 class Conventional(Fire_Alarm):
     def monitor(self,temp):
         if int(temp)>30 :
             Emergency.makecall(self,2345112)
             Emergency.spriklewater(self)
             
-#Implement from Security_System  - Camera_Control -capture and delete image
+#Extended from Security_System
+#Used to capture and delete image
+
 class Camera_Control(Security_System):
     def img_capture(self):
         SoundSystem.speak(self,"Capturing")
     def img_delete(self):
         SoundSystem.speak(self,"Deleting")
 
+#The main function has five types of commands
+
+#Setup device uses the Operation class to set up CARA
+#Create Account uses the User class to create an account
+#Input Voice makes use of all the classes declared to perform tasks
+#Reset Device uses the Operation class to reset CARA
 
 if __name__ == "__main__":
+    
     while True:
         print( " 1.Setup device \n 2.Create Account \n 3.Input Voice \n 4.Reset Device \n 5.Exit \n" )
         g=input(" Enter your choice ")
